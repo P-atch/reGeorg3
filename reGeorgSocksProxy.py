@@ -152,7 +152,8 @@ class session(Thread):
             target = sock.recv(4)
             targetPort = sock.recv(2)
             log.debug(f"Raw target: {target}")
-            target = b"." .join([bytes(i) for i in target])
+            #target = b"." .join([bytes(i) for i in target])
+            target = socket.inet_ntoa(target)
         elif atyp == b"\x03":  # Hostname
             targetLen = sock.recv(1)  # hostname length (1 byte)
             target = sock.recv(targetLen)
