@@ -15,17 +15,17 @@ import ssl
 # Constants
 SOCKTIMEOUT = 5
 RESENDTIMEOUT = 300
-VER = "\x05"
-METHOD = "\x00"
-SUCCESS = "\x00"
-SOCKFAIL = "\x01"
-NETWORKFAIL = "\x02"
-HOSTFAIL = "\x04"
-REFUSED = "\x05"
-TTLEXPIRED = "\x06"
-UNSUPPORTCMD = "\x07"
-ADDRTYPEUNSPPORT = "\x08"
-UNASSIGNED = "\x09"
+VER = b"\x05"
+METHOD = b"\x00"
+SUCCESS = b"\x00"
+SOCKFAIL = b"\x01"
+NETWORKFAIL = b"\x02"
+HOSTFAIL = b"\x04"
+REFUSED = b"\x05"
+TTLEXPIRED = b"\x06"
+UNSUPPORTCMD = b"\x07"
+ADDRTYPEUNSPPORT = b"\x08"
+UNASSIGNED = b"\x09"
 
 BASICCHECKSTRING = b"Georg says, 'All seems fine'"
 
@@ -141,31 +141,31 @@ class session(Thread):
         nmethods, methods = (sock.recv(1), sock.recv(1))
         sock.sendall(VER + METHOD)
         ver = sock.recv(1)
-        if ver == "\x02":  # this is a hack for proxychains
+        if ver == b"\x02":  # this is a hack for proxychains
             ver, cmd, rsv, atyp = (sock.recv(1), sock.recv(1), sock.recv(1), sock.recv(1))
         else:
             cmd, rsv, atyp = (sock.recv(1), sock.recv(1), sock.recv(1))
         target = None
         targetPort = None
-        if atyp == "\x01":  # IPv4
+        if atyp == b"\x01":  # IPv4
             # Reading 6 bytes for the IP and Port
             target = sock.recv(4)
             targetPort = sock.recv(2)
-            target = "." .join([str(ord(i)) for i in target])
-        elif atyp == "\x03":  # Hostname
+            target = b"." .join([str(ord(i)) for i in target])
+        elif atyp == b"\x03":  # Hostname
             targetLen = ord(sock.recv(1))  # hostname length (1 byte)
             target = sock.recv(targetLen)
             targetPort = sock.recv(2)
-            target = "".join([unichr(ord(i)) for i in target])
-        elif atyp == "\x04":  # IPv6
+            target = b"".join([unichr(ord(i)) for i in target])
+        elif atyp == b"\x04":  # IPv6
             target = sock.recv(16)
             targetPort = sock.recv(2)
             tmp_addr = []
             for i in xrange(len(target) / 2):
                 tmp_addr.append(unichr(ord(target[2 * i]) * 256 + ord(target[2 * i + 1])))
-            target = ":".join(tmp_addr)
+            target = b":".join(tmp_addr)
         targetPort = ord(targetPort[0]) * 256 + ord(targetPort[1])
-        if cmd == "\x02":  # BIND
+        if cmd == b"\x02":  # BIND
             raise SocksCmdNotImplemented("Socks5 - BIND not implemented")
         elif cmd == "\x03":  # UDP
             raise SocksCmdNotImplemented("Socks5 - UDP not implemented")
@@ -175,13 +175,13 @@ class session(Thread):
                 serverIp = gethostbyname(target)
             except:
                 log.error("oeps")
-            serverIp = "".join([chr(int(i)) for i in serverIp.split(".")])
+            serverIp = b"".join([chr(int(i)) for i in serverIp.split(b".")])
             self.cookie = self.setupRemoteSession(target, targetPort)
             if self.cookie:
-                sock.sendall(VER + SUCCESS + "\x00" + "\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
+                sock.sendall(VER + SUCCESS + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 return True
             else:
-                sock.sendall(VER + REFUSED + "\x00" + "\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
+                sock.sendall(VER + REFUSED + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 raise RemoteConnectionFailed("[%s:%d] Remote failed" % (target, targetPort))
 
         raise SocksCmdNotImplemented("Socks5 - Unknown CMD")
@@ -189,24 +189,24 @@ class session(Thread):
     def parseSocks4(self, sock):
         log.debug("SocksVersion4 detected")
         cmd = sock.recv(1)
-        if cmd == "\x01":  # Connect
+        if cmd == b"\x01":  # Connect
             targetPort = sock.recv(2)
             targetPort = ord(targetPort[0]) * 256 + ord(targetPort[1])
             target = sock.recv(4)
             sock.recv(1)
-            target = ".".join([str(ord(i)) for i in target])
+            target = b".".join([str(ord(i)) for i in target])
             serverIp = target
             try:
                 serverIp = gethostbyname(target)
             except:
                 log.error("oeps")
-            serverIp = "".join([chr(int(i)) for i in serverIp.split(".")])
+            serverIp = b"".join([chr(int(i)) for i in serverIp.split(b".")])
             self.cookie = self.setupRemoteSession(target, targetPort)
             if self.cookie:
                 sock.sendall(chr(0) + chr(90) + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 return True
             else:
-                sock.sendall("\x00" + "\x91" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
+                sock.sendall(b"\x00" + b"\x91" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 raise RemoteConnectionFailed("Remote connection failed")
         else:
             raise SocksProtocolNotImplemented("Socks4 - Command [%d] Not implemented" % ord(cmd))
@@ -214,12 +214,12 @@ class session(Thread):
     def handleSocks(self, sock):
         # This is where we setup the socks connection
         ver = sock.recv(1)
-        if ver == "\x05":
+        if ver == b"\x05":
             return self.parseSocks5(sock)
-        elif ver == "\x04":
+        elif ver == b"\x04":
             return self.parseSocks4(sock)
         else:
-            raise Exception("Can't identify socks version")
+            raise Exception(f"Can't identify socks version ({ver})")
 
     def setupRemoteSession(self, target, port):
         headers = {"X-CMD": "CONNECT", "X-TARGET": target, "X-PORT": port}
