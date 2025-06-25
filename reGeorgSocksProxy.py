@@ -167,9 +167,9 @@ class session(Thread):
         targetPort = targetPort[0] * 256 + targetPort[1]
         if cmd == b"\x02":  # BIND
             raise SocksCmdNotImplemented("Socks5 - BIND not implemented")
-        elif cmd == "\x03":  # UDP
+        elif cmd == b"\x03":  # UDP
             raise SocksCmdNotImplemented("Socks5 - UDP not implemented")
-        elif cmd == "\x01":  # CONNECT
+        elif cmd == b"\x01":  # CONNECT
             serverIp = target
             try:
                 serverIp = gethostbyname(target)
