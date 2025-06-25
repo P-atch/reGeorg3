@@ -232,9 +232,9 @@ class session(Thread):
         self.target = target
         self.port = port
         cookie = None
-        conn = self.httpScheme(host=self.httpHost, port=self.httpPort)
+        conn = self.httpScheme(host=self.httpHost, port=self.httpPort, ssl_context=ssl._create_unverified_context())
         # response = conn.request("POST", self.httpPath, params, headers)
-        response = conn.urlopen('POST', self.connectString + "?cmd=connect&target=%s&port=%d" % (target, port), headers=headers, body="", ssl_context=ssl._create_unverified_context())
+        response = conn.urlopen('POST', self.connectString + "?cmd=connect&target=%s&port=%d" % (target, port), headers=headers, body="")
         if response.status == 200:
             status = response.getheader("x-status")
             if status == "OK":
@@ -252,21 +252,21 @@ class session(Thread):
     def closeRemoteSession(self):
         headers = {"X-CMD": "DISCONNECT", "Cookie": self.cookie}
         params = ""
-        conn = self.httpScheme(host=self.httpHost, port=self.httpPort)
+        conn = self.httpScheme(host=self.httpHost, port=self.httpPort, ssl_context=ssl._create_unverified_context())
         response = conn.request("POST", self.httpPath + "?cmd=disconnect", params, headers)
         if response.status == 200:
             log.info("[%s:%d] Connection Terminated" % (self.target, self.port))
         conn.close()
 
     def reader(self):
-        conn = urllib3.PoolManager()
+        conn = urllib3.PoolManager(ssl_context=ssl._create_unverified_context())
         while True:
             try:
                 if not self.pSocket:
                     break
                 data = ""
                 headers = {"X-CMD": "READ", "Cookie": self.cookie, "Connection": "Keep-Alive"}
-                response = conn.urlopen('POST', self.connectString + "?cmd=read", headers=headers, body="", ssl_context=ssl._create_unverified_context())
+                response = conn.urlopen('POST', self.connectString + "?cmd=read", headers=headers, body="")
                 data = None
                 if response.status == 200:
                     status = response.getheader("x-status")
