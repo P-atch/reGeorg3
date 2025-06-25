@@ -287,7 +287,7 @@ class session(Thread):
                     continue
                 transferLog.info("[%s:%d] <<<< [%d]" % (self.target, self.port, len(data)))
                 self.pSocket.send(data)
-            except (Exception, ex):
+            except Exception as ex:
                 raise ex
         self.closeRemoteSession()
         log.debug("[%s:%d] Closing localsocket" % (self.target, self.port))
@@ -321,7 +321,7 @@ class session(Thread):
                 transferLog.info("[%s:%d] >>>> [%d]" % (self.target, self.port, len(data)))
             except timeout:
                 continue
-            except(Exception, ex):
+            except Exception as ex:
                 raise ex
                 break
         self.closeRemoteSession()
@@ -342,13 +342,13 @@ class session(Thread):
                 w.start()
                 r.join()
                 w.join()
-        except(SocksCmdNotImplemented, si):
+        except SocksCmdNotImplemented as si:
             log.error(si.message)
             self.pSocket.close()
-        except (SocksProtocolNotImplemented, spi):
+        except SocksProtocolNotImplemented as spi:
             log.error(spi.message)
             self.pSocket.close()
-        except (Exception, e):
+        except Exception as e:
             log.error(e.message)
             self.closeRemoteSession()
             self.pSocket.close()
@@ -427,8 +427,8 @@ if __name__ == '__main__':
             sock.settimeout(SOCKTIMEOUT)
             log.debug("Incomming connection")
             session(sock, args.url).start()
-        except(KeyboardInterrupt, ex):
+        except KeyboardInterrupt as ex:
             break
-        except(Exception, e):
+        except Exception as e:
             log.error(e)
     servSock.close()
