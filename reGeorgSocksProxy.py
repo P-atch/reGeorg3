@@ -184,7 +184,7 @@ class session(Thread):
                 sock.sendall(VER + REFUSED + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 raise RemoteConnectionFailed("[%s:%d] Remote failed" % (target, targetPort))
 
-        raise SocksCmdNotImplemented("Socks5 - Unknown CMD")
+        raise SocksCmdNotImplemented(f"Socks5 - Unknown CMD: {cmd}")
 
     def parseSocks4(self, sock):
         log.debug("SocksVersion4 detected")
