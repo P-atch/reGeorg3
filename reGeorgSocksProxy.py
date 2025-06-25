@@ -5,10 +5,12 @@ import logging
 import argparse
 import urllib3
 from threading import Thread
-from urlparse import urlparse
+#from urlparse import urlparse
+from urllib.parse import urlparse
 from socket import *
 from threading import Thread
 from time import sleep
+import ssl
 
 # Constants
 SOCKTIMEOUT = 5
@@ -25,7 +27,7 @@ UNSUPPORTCMD = "\x07"
 ADDRTYPEUNSPPORT = "\x08"
 UNASSIGNED = "\x09"
 
-BASICCHECKSTRING = "Georg says, 'All seems fine'"
+BASICCHECKSTRING = b"Georg says, 'All seems fine'"
 
 # Globals
 READBUFSIZE = 1024
@@ -285,7 +287,7 @@ class session(Thread):
                     continue
                 transferLog.info("[%s:%d] <<<< [%d]" % (self.target, self.port, len(data)))
                 self.pSocket.send(data)
-            except Exception, ex:
+            except (Exception, ex):
                 raise ex
         self.closeRemoteSession()
         log.debug("[%s:%d] Closing localsocket" % (self.target, self.port))
@@ -319,7 +321,7 @@ class session(Thread):
                 transferLog.info("[%s:%d] >>>> [%d]" % (self.target, self.port, len(data)))
             except timeout:
                 continue
-            except Exception, ex:
+            except(Exception, ex):
                 raise ex
                 break
         self.closeRemoteSession()
@@ -340,13 +342,13 @@ class session(Thread):
                 w.start()
                 r.join()
                 w.join()
-        except SocksCmdNotImplemented, si:
+        except(SocksCmdNotImplemented, si):
             log.error(si.message)
             self.pSocket.close()
-        except SocksProtocolNotImplemented, spi:
+        except (SocksProtocolNotImplemented, spi):
             log.error(spi.message)
             self.pSocket.close()
-        except Exception, e:
+        except (Exception, e):
             log.error(e.message)
             self.closeRemoteSession()
             self.pSocket.close()
@@ -370,9 +372,11 @@ def askGeorg(connectString):
     else:
         httpScheme = urllib3.HTTPSConnectionPool
 
-    conn = httpScheme(host=httpHost, port=httpPort)
+    conn = httpScheme(host=httpHost, port=httpPort, ssl_context=ssl._create_unverified_context())
     response = conn.request("GET", httpPath)
+    print(response.status)
     if response.status == 200:
+        print(response.data.strip())
         if BASICCHECKSTRING == response.data.strip():
             log.info(BASICCHECKSTRING)
             return True
@@ -380,7 +384,7 @@ def askGeorg(connectString):
     return False
 
 if __name__ == '__main__':
-    print """\033[1m
+    print ("""\033[1m
     \033[1;33m
                      _____
   _____   ______  __|___  |__  ______  _____  _____   ______
@@ -394,7 +398,7 @@ if __name__ == '__main__':
   sam@sensepost.com / @trowalts
   etienne@sensepost.com / @kamp_staaldraad
   \033[0m
-   """
+   """)
     log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(description='Socks server for reGeorg HTTP(s) tunneller')
     parser.add_argument("-l", "--listen-on", metavar="", help="The default listening address", default="127.0.0.1")
@@ -423,8 +427,8 @@ if __name__ == '__main__':
             sock.settimeout(SOCKTIMEOUT)
             log.debug("Incomming connection")
             session(sock, args.url).start()
-        except KeyboardInterrupt, ex:
+        except(KeyboardInterrupt, ex):
             break
-        except Exception, e:
+        except(Exception, e):
             log.error(e)
     servSock.close()
