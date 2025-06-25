@@ -165,6 +165,8 @@ class session(Thread):
                 tmp_addr.append(unichr(target[2 * i] * 256 + target[2 * i + 1]))
             target = b":".join(tmp_addr)
         targetPort = targetPort[0] * 256 + targetPort[1]
+        log.debug(f"Target: {target} | port: {targetPort}")
+
         if cmd == b"\x02":  # BIND
             raise SocksCmdNotImplemented("Socks5 - BIND not implemented")
         elif cmd == b"\x03":  # UDP
