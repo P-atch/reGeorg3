@@ -218,6 +218,8 @@ class session(Thread):
             return self.parseSocks5(sock)
         elif ver == "\x04":
             return self.parseSocks4(sock)
+        else:
+            raise Exception("Can't identify socks version")
 
     def setupRemoteSession(self, target, port):
         headers = {"X-CMD": "CONNECT", "X-TARGET": target, "X-PORT": port}
