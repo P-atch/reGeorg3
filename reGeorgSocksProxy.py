@@ -184,10 +184,10 @@ class session(Thread):
             serverIp = inet_aton(target)
             self.cookie = self.setupRemoteSession(target, targetPort)
             if self.cookie:
-                sock.sendall(VER + SUCCESS + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
+                sock.sendall(VER + SUCCESS + b"\x00" + b"\x01" + serverIp + chr(int(targetPort / 256)) + chr(targetPort % 256))
                 return True
             else:
-                sock.sendall(VER + REFUSED + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
+                sock.sendall(VER + REFUSED + b"\x00" + b"\x01" + serverIp + chr(int(targetPort / 256)) + chr(targetPort % 256))
                 raise RemoteConnectionFailed("[%s:%d] Remote failed" % (target, targetPort))
 
         raise SocksCmdNotImplemented(f"Socks5 - Unknown CMD: {cmd}")
