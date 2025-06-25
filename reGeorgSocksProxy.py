@@ -180,7 +180,8 @@ class session(Thread):
                 serverIp = gethostbyname(target)
             except:
                 log.error("oeps")
-            serverIp = b"".join([chr(int(i)) for i in serverIp.split(b".")])
+            #serverIp = b"".join([chr(int(i)) for i in serverIp.split(b".")])
+            serverIp = inet_aton(target)
             self.cookie = self.setupRemoteSession(target, targetPort)
             if self.cookie:
                 sock.sendall(VER + SUCCESS + b"\x00" + b"\x01" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
@@ -350,13 +351,13 @@ class session(Thread):
                 r.join()
                 w.join()
         except SocksCmdNotImplemented as si:
-            log.error(si.message)
+            log.error(si.args)
             self.pSocket.close()
         except SocksProtocolNotImplemented as spi:
-            log.error(spi.message)
+            log.error(spi.args)
             self.pSocket.close()
         except Exception as e:
-            log.error(e.message)
+            log.error(e.args)
             self.closeRemoteSession()
             self.pSocket.close()
 
