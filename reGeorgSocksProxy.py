@@ -151,20 +151,20 @@ class session(Thread):
             # Reading 6 bytes for the IP and Port
             target = sock.recv(4)
             targetPort = sock.recv(2)
-            target = b"." .join([str(ord(i)) for i in target])
+            target = b"." .join([str(i) for i in target])
         elif atyp == b"\x03":  # Hostname
-            targetLen = ord(sock.recv(1))  # hostname length (1 byte)
+            targetLen = sock.recv(1)  # hostname length (1 byte)
             target = sock.recv(targetLen)
             targetPort = sock.recv(2)
-            target = b"".join([unichr(ord(i)) for i in target])
+            target = b"".join([unichr(i) for i in target])
         elif atyp == b"\x04":  # IPv6
             target = sock.recv(16)
             targetPort = sock.recv(2)
             tmp_addr = []
             for i in xrange(len(target) / 2):
-                tmp_addr.append(unichr(ord(target[2 * i]) * 256 + ord(target[2 * i + 1])))
+                tmp_addr.append(unichr(target[2 * i] * 256 + target[2 * i + 1]))
             target = b":".join(tmp_addr)
-        targetPort = ord(targetPort[0]) * 256 + ord(targetPort[1])
+        targetPort = targetPort[0] * 256 + targetPort[1]
         if cmd == b"\x02":  # BIND
             raise SocksCmdNotImplemented("Socks5 - BIND not implemented")
         elif cmd == "\x03":  # UDP
@@ -191,10 +191,10 @@ class session(Thread):
         cmd = sock.recv(1)
         if cmd == b"\x01":  # Connect
             targetPort = sock.recv(2)
-            targetPort = ord(targetPort[0]) * 256 + ord(targetPort[1])
+            targetPort = targetPort[0] * 256 + targetPort[1]
             target = sock.recv(4)
             sock.recv(1)
-            target = b".".join([str(ord(i)) for i in target])
+            target = b".".join([str(i) for i in target])
             serverIp = target
             try:
                 serverIp = gethostbyname(target)
@@ -209,7 +209,7 @@ class session(Thread):
                 sock.sendall(b"\x00" + b"\x91" + serverIp + chr(targetPort / 256) + chr(targetPort % 256))
                 raise RemoteConnectionFailed("Remote connection failed")
         else:
-            raise SocksProtocolNotImplemented("Socks4 - Command [%d] Not implemented" % ord(cmd))
+            raise SocksProtocolNotImplemented("Socks4 - Command [%d] Not implemented" % cmd)
 
     def handleSocks(self, sock):
         # This is where we setup the socks connection
