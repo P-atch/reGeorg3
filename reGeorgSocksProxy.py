@@ -253,7 +253,7 @@ class session(Thread):
         headers = {"X-CMD": "DISCONNECT", "Cookie": self.cookie}
         params = ""
         conn = self.httpScheme(host=self.httpHost, port=self.httpPort, ssl_context=ssl._create_unverified_context())
-        response = conn.request("POST", self.httpPath + "?cmd=disconnect", params, headers)
+        response = conn.request("POST", self.httpPath + "?cmd=disconnect", body=params, headers=headers)
         if response.status == 200:
             log.info("[%s:%d] Connection Terminated" % (self.target, self.port))
         conn.close()
